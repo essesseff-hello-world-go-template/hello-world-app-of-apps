@@ -38,7 +38,7 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 - **hello-world-dev** → DEV environment (auto-sync)
 - **hello-world-qa** → QA environment (auto-sync)
 - **hello-world-staging** → STAGING environment (auto-sync)
-- **hello-world-prod** → PROD environment (manual sync required)
+- **hello-world-prod** → PROD environment (auto-sync)
 
 ## Deployment Process
 
@@ -55,8 +55,7 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 3. QA marks as Stable
 4. Release Engineer deploys to STAGING (optional)
 5. Release Engineer requests PROD deployment (requires 2 approvals)
-6. After approval, essesseff updates config-prod
-7. Manually sync hello-world-prod in Argo CD UI
+6. After approval, essesseff deploys to PROD
 
 ## Repository URLs
 
