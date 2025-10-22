@@ -1,14 +1,14 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: hello-world-apps
+  name: hello-world-app-of-apps
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   source:
-    repoURL: https://github.com/essesseff-hello-world-go-template/hello-world-apps.git
+    repoURL: https://github.com/essesseff-hello-world-go-template/hello-world-app-of-apps.git
     targetRevision: HEAD
     path: .
     helm:
