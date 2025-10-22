@@ -59,12 +59,12 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 
 ## Repository URLs
 
-- Source: https://github.com/essesseff-hello-world-go-template/hello-world-app
+- Source: https://github.com/essesseff-hello-world-go-template/hello-world
 - Config DEV: https://github.com/essesseff-hello-world-go-template/hello-world-config-dev
 - Config QA: https://github.com/essesseff-hello-world-go-template/hello-world-config-qa
 - Config STAGING: https://github.com/essesseff-hello-world-go-template/hello-world-config-staging
 - Config PROD: https://github.com/essesseff-hello-world-go-template/hello-world-config-prod
-- Apps: https://github.com/essesseff-hello-world-go-template/hello-world-apps (this repo)
+- Apps: https://github.com/essesseff-hello-world-go-template/hello-world-app-of-apps (this repo)
 
 ## essesseff Integration
 
