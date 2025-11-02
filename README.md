@@ -54,7 +54,7 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 2. QA accepts RC → essesseff deploys to QA
 3. QA marks as Stable
 4. Release Engineer deploys to STAGING (optional)
-5. Release Engineer requests PROD deployment (requires 2 approvals)
+5. Release Engineer deploys to PROD (requires OTP approval)
 6. After approval, essesseff deploys to PROD
 
 ## Repository URLs
