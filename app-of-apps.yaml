@@ -3,20 +3,18 @@ kind: Application
 metadata:
   name: hello-world-app-of-apps
   namespace: argocd
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
+  labels:
+    app: hello-world
+    essesseff: "true"
 spec:
   project: default
   source:
-    repoURL: https://github.com/essesseff-hello-world-go-template/hello-world-app-of-apps.git
-    targetRevision: HEAD
-    path: .
-    helm:
-      valueFiles:
-        - values.yaml
+    repoURL: https://github.com/essesseff-hello-world-go-template/hello-world-app-of-apps
+    targetRevision: main
+    path: argocd
   destination:
     server: https://kubernetes.default.svc
-    namespace: essesseff-hello-world-go-template
+    namespace: argocd
   syncPolicy:
     automated:
       prune: true
