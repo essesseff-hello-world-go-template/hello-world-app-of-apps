@@ -16,10 +16,10 @@ spec:
         - values.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: 
+    namespace: essesseff-hello-world-go-template
   syncPolicy:
     automated:
-      prune: 
-      selfHeal: 
+      prune: true
+      selfHeal: true
     syncOptions:
       - CreateNamespace=true
