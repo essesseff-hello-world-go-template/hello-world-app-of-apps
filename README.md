@@ -1,78 +1,121 @@
-# Hello World Apps - Argo CD App-of-Apps
+# hello-world - Argo CD App-of-Apps
 
-This repository contains Argo CD Application manifests for all environments.
+This repository contains Argo CD Application manifests for all environments of the hello-world essesseff app.
+
+## Repository Structure
+
+```
+hello-world-app-of-apps/
+├── argocd/
+│   ├── hello-world-dev-application.yaml      # DEV environment Application
+│   ├── hello-world-qa-application.yaml       # QA environment Application
+│   ├── hello-world-staging-application.yaml  # STAGING environment Application
+│   └── hello-world-prod-application.yaml     # PROD environment Application
+├── app-of-apps.yaml                         # Root Application (applies all environment Applications)
+└── README.md                                # This file
+```
 
 ## Architecture
 
-- **Deployment Model**: Trunk-based development
-- **Auto-Deploy**: DEV only (via essesseff)
-- **Manual Deploy**: QA, STAGING, PROD (via essesseff UI)
+- **Deployment Model**: Trunk-based development (single `main` branch)
+- **Auto-Deploy**: DEV only (via essesseff webhooks)
+- **Manual Deploy**: QA, STAGING, PROD (via essesseff UI with RBAC)
+- **GitOps**: All deployments managed by Argo CD with automated sync
 
-## Installation
+## Quick Start
 
-1. Install Argo CD:
+For complete setup instructions, see the [EKS Setup Guide](./aws-setup-instructions.md).
+
+### Minimal Setup (After EKS Infrastructure is Ready)
+
+1. **Install Argo CD** (if not already installed):
 ```bash
 kubectl create namespace argocd
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 ```
 
-2. Configure repository access:
+2. **Configure repository access**:
 ```bash
 # Edit argocd/argocd-repository-secret.yaml with your GitHub token
 kubectl apply -f argocd/argocd-repository-secret.yaml
 ```
 
-3. Deploy app-of-apps:
+3. **Deploy app-of-apps root Application**:
 ```bash
 kubectl apply -f app-of-apps.yaml
 ```
 
-4. Access Argo CD UI:
+4. **Access Argo CD UI**:
 ```bash
 kubectl port-forward svc/argocd-server -n argocd 8080:443
-kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+# Get admin password:
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d && echo
+# Access: https://localhost:8080
 ```
 
 ## Applications
 
-- **hello-world-dev** → DEV environment (auto-sync)
-- **hello-world-qa** → QA environment (auto-sync)
-- **hello-world-staging** → STAGING environment (auto-sync)
-- **hello-world-prod** → PROD environment (auto-sync)
+The root Application (`app-of-apps.yaml`) automatically creates these environment Applications:
+
+- **hello-world-dev** → DEV environment (auto-sync enabled)
+- **hello-world-qa** → QA environment (auto-sync enabled)
+- **hello-world-staging** → STAGING environment (auto-sync enabled)
+- **hello-world-prod** → PROD environment (auto-sync enabled)
+
+Each environment Application points to its corresponding config repository:
+- `hello-world-config-dev`
+- `hello-world-config-qa`
+- `hello-world-config-staging`
+- `hello-world-config-prod`
 
 ## Deployment Process
 
 ### Automatic (DEV only)
-1. Push code to `main` branch
-2. GitHub Actions builds image
+
+1. Push code to `main` branch in `hello-world` repository
+2. GitHub Actions builds container image
 3. essesseff webhook triggers
-4. essesseff auto-deploys to DEV
-5. Argo CD syncs DEV
+4. essesseff auto-updates `hello-world-config-dev/values.yaml` with new image tag
+5. Argo CD syncs DEV Application automatically
 
 ### Manual (QA, STAGING, PROD)
-1. Developer declares Release Candidate in essesseff UI
-2. QA accepts RC → essesseff deploys to QA
-3. QA marks as Stable
-4. Release Engineer deploys to STAGING (optional)
-5. Release Engineer deploys to PROD (requires OTP approval)
-6. After approval, essesseff deploys to PROD
+
+1. **Developer** declares Release Candidate (RC) in essesseff UI
+2. **QA Engineer** accepts RC → essesseff deploys to QA
+3. **QA Engineer** marks image as Stable when ready
+4. **Release Engineer** deploys to STAGING (optional)
+5. **Release Engineer** deploys to PROD (requires OTP approval)
 
 ## Repository URLs
 
-- Source: https://github.com/essesseff-hello-world-go-template/hello-world
-- Config DEV: https://github.com/essesseff-hello-world-go-template/hello-world-config-dev
-- Config QA: https://github.com/essesseff-hello-world-go-template/hello-world-config-qa
-- Config STAGING: https://github.com/essesseff-hello-world-go-template/hello-world-config-staging
-- Config PROD: https://github.com/essesseff-hello-world-go-template/hello-world-config-prod
-- Apps: https://github.com/essesseff-hello-world-go-template/hello-world-app-of-apps (this repo)
+- **Source**: `https://github.com/essesseff-hello-world-go-template/hello-world`
+- **Config DEV**: `https://github.com/essesseff-hello-world-go-template/hello-world-config-dev`
+- **Config QA**: `https://github.com/essesseff-hello-world-go-template/hello-world-config-qa`
+- **Config STAGING**: `https://github.com/essesseff-hello-world-go-template/hello-world-config-staging`
+- **Config PROD**: `https://github.com/essesseff-hello-world-go-template/hello-world-config-prod`
+- **App-of-Apps**: `https://github.com/essesseff-hello-world-go-template/hello-world-app-of-apps` (this repo)
 
 ## essesseff Integration
 
 This setup requires the essesseff platform for deployment orchestration:
-- Event-driven promotions
-- RBAC enforcement
-- Approval workflows
-- Deployment policies
-- Audit trail
 
-See main documentation for essesseff setup instructions.
+- **Event-driven promotions**: Automatic DEV deployments on code push
+- **RBAC enforcement**: Role-based access control for deployments
+- **Approval workflows**: Manual approvals for QA/STAGING/PROD
+- **Deployment policies**: Enforced promotion paths (RC → QA → Stable → STAGING → PROD)
+- **Audit trail**: Complete history of all deployments and approvals
+- **OTP protection**: One-time password required for PROD deployments
+
+## How It Works
+
+1. **essesseff manages** image lifecycle and promotion decisions
+2. **essesseff updates** `values.yaml` files in config repos (e.g., `hello-world-config-dev/values.yaml`) with approved image tags
+3. **Argo CD detects** changes via Git polling
+4. **Argo CD syncs** Applications automatically (auto-sync enabled)
+5. **Kubernetes resources** are updated with new image versions
+
+## See Also
+
+- [Complete EKS Setup Instructions](./aws-setup-instructions.md) - Full infrastructure setup guide
+- [essesseff Documentation](https://essesseff.com/docs) - essesseff platform documentation
+
