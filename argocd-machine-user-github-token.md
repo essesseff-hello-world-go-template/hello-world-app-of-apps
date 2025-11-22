@@ -4,8 +4,8 @@ This document provides a complete procedure for creating GitHub organization Arg
 
 ## Table of Contents
 
-- [Step 1: Create the Argo CD Machine User Account(s)](#step-1-create-the-argo-cd-machine-user-account(s))
-- [Step 2: Add Argo CD Machine User(s) to Organization](#step-2-add-argo-cd-machine-user(s)-to-organization)
+- [Step 1: Create the Argo CD Machine User Accounts](#step-1-create-the-argo-cd-machine-user-accounts)
+- [Step 2: Add Argo CD Machine Users to Organization](#step-2-add-argo-cd-machine-users-to-organization)
 - [Step 3: Grant Container Registry Access](#step-3-grant-container-registry-access)
 - [Step 4: Create Personal Access Token](#step-4-create-personal-access-token)
 - [Step 5: Store the Token Securely](#step-5-store-the-token-securely)
@@ -16,7 +16,7 @@ This document provides a complete procedure for creating GitHub organization Arg
 
 ---
 
-## Step 1: Create the Argo CD Machine User Account(s)
+## Step 1: Create the Argo CD Machine User Accounts
 
 1. **Sign out** of your personal GitHub account (or use an incognito/private browser window)
 2. Go to https://github.com/signup
@@ -32,7 +32,7 @@ This document provides a complete procedure for creating GitHub organization Arg
 
 ---
 
-## Step 2: Add Argo CD Machine User(s) to Organization
+## Step 2: Add Argo CD Machine Users to Organization
 
 Choose the option that best fits your access requirements:
 
