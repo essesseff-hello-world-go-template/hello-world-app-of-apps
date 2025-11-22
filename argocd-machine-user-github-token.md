@@ -1,11 +1,11 @@
 # GitHub Organization Argo CD Machine User and PAT Setup Procedure
 
-This document provides a complete procedure for creating a GitHub organization Argo CD machine user with a Personal Access Token (PAT) that has repository access and Container Registry permissions.
+This document provides a complete procedure for creating GitHub organization Argo CD machine user(s) with a Personal Access Token (PAT) that has repository access and Container Registry permissions.
 
 ## Table of Contents
 
-- [Step 1: Create the Argo CD Machine User Account](#step-1-create-the-argo-cd-machine-user-account)
-- [Step 2: Add Argo CD Machine User to Organization](#step-2-add-argo-cd-machine-user-to-organization)
+- [Step 1: Create the Argo CD Machine User Account(s)](#step-1-create-the-argo-cd-machine-user-account(s))
+- [Step 2: Add Argo CD Machine User(s) to Organization](#step-2-add-argo-cd-machine-user(s)-to-organization)
 - [Step 3: Grant Container Registry Access](#step-3-grant-container-registry-access)
 - [Step 4: Create Personal Access Token](#step-4-create-personal-access-token)
 - [Step 5: Store the Token Securely](#step-5-store-the-token-securely)
@@ -16,13 +16,13 @@ This document provides a complete procedure for creating a GitHub organization A
 
 ---
 
-## Step 1: Create the Argo CD Machine User Account
+## Step 1: Create the Argo CD Machine User Account(s)
 
 1. **Sign out** of your personal GitHub account (or use an incognito/private browser window)
 2. Go to https://github.com/signup
 3. Create a new account with:
    - **Username**: Choose something clearly indicating it's a machine user
-     - Examples: `myorg-deploy-bot`, `myorg-automation`, `myorg-ci-bot`
+     - Examples: `argocd-machine-user-prod`, `argocd-machine-user-qa`, `argocd-machine-user-dev`
    - **Email**: Use a monitored email address
      - Examples: `devops@yourcompany.com` or a distribution list
    - **Password**: Use a strong, randomly generated password stored in your password manager
@@ -32,7 +32,7 @@ This document provides a complete procedure for creating a GitHub organization A
 
 ---
 
-## Step 2: Add Argo CD Machine User to Organization
+## Step 2: Add Argo CD Machine User(s) to Organization
 
 Choose the option that best fits your access requirements:
 
@@ -100,7 +100,7 @@ If your packages are organization-scoped:
 1. Click **Tokens (classic)** → **Generate new token (classic)**
 2. Authenticate if prompted
 3. Fill in token details:
-   - **Note**: `Org Automation - Created YYYY-MM-DD`
+   - **Note**: `Argo CD Machine User PROD - Created YYYY-MM-DD`
    - **Expiration**: Choose based on your security policy
      - Recommendation: 90 days or 1 year (requires rotation)
      - Or use "No expiration" only if absolutely necessary
@@ -117,7 +117,7 @@ If your packages are organization-scoped:
 
 1. Click **Fine-grained tokens** → **Generate new token**
 2. Fill in:
-   - **Token name**: `Org Automation - Created YYYY-MM-DD`
+   - **Token name**: `Argo CD Machine User DEV - Created YYYY-MM-DD`
    - **Expiration**: Set based on security policy
    - **Resource owner**: Select your organization
    - **Repository access**: 
@@ -218,13 +218,13 @@ Login Succeeded
 
 Create documentation that includes:
 
-- [ ] Where the token is stored
-- [ ] What the token is used for
-- [ ] When it was created
-- [ ] When it expires
-- [ ] Who has access to it
-- [ ] Machine user username
-- [ ] Organization and repositories it has access to
+- [ ] Where the token(s) are stored
+- [ ] What the token(s) are used for
+- [ ] When the token(s) were created
+- [ ] When the token(s) expire
+- [ ] Who has access to the token(s)
+- [ ] Argo CD Machine User username(s)
+- [ ] Organization and repositories the machine user(s) / token(s) have access to
 
 ### Set Up Rotation Reminders
 
