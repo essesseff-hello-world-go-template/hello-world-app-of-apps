@@ -75,7 +75,7 @@ Each environment Application points to its corresponding config repository:
 1. Push code to `main` branch in `hello-world` repository
 2. GitHub Actions builds container image
 3. essesseff webhook triggers
-4. essesseff auto-updates `hello-world-config-dev/values.yaml` with new image tag
+4. essesseff auto-updates `hello-world-config-dev/Chart.yaml` and `hello-world-config-dev/values.yaml` with new image tag
 5. Argo CD syncs DEV Application automatically
 
 ### Manual (QA, STAGING, PROD)
