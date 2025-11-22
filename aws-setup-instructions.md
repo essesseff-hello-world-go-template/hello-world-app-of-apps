@@ -4,12 +4,12 @@
 
 This guide assumes you have already created an essesseff app from a template, which automatically sets up the 6-repository structure:
 
-- `{app-name}` - Source code repository
-- `{app-name}-config-dev` - Development environment configuration (Helm chart + values.yaml)
-- `{app-name}-config-qa` - QA environment configuration (Helm chart + values.yaml)
-- `{app-name}-config-staging` - Staging environment configuration (Helm chart + values.yaml)
-- `{app-name}-config-prod` - Production environment configuration (Helm chart + values.yaml)
-- `{app-name}-app-of-apps` - Argo CD app-of-apps definitions (contains environment Application YAMLs)
+- `hello-world` - Source code repository
+- `hello-world-config-dev` - Development environment configuration (Helm chart + values.yaml)
+- `hello-world-config-qa` - QA environment configuration (Helm chart + values.yaml)
+- `hello-world-config-staging` - Staging environment configuration (Helm chart + values.yaml)
+- `hello-world-config-prod` - Production environment configuration (Helm chart + values.yaml)
+- `hello-world-app-of-apps` - Argo CD app-of-apps definitions (contains environment Application YAMLs)
 
 **All repositories are already populated** with content from the essesseff template, including:
 - Helm charts with generic templates
@@ -67,7 +67,7 @@ kubectl get nodes  # Verify access
 
 **Note:** You can run helm/kubectl locally with public endpoint. Private endpoint requires VPN/bastion because the EKS API server is only reachable from within the VPC.
 
-## Step 2: Install AWS Load Balancer Controller
+## Step 2: Install AWS Load Balancer Controller <i>(skip this step if running EKS Auto Mode)</i>
 
 The AWS Load Balancer Controller is required for creating Application Load Balancers (ALBs) from Kubernetes Ingress resources.
 
@@ -102,97 +102,24 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 
 Argo CD needs access to your GitHub repositories. Since your essesseff app already has 6 repositories, you need to create secrets for all of them.
 
-**Replace `{app-name}` and `{github-org}` with your actual app name and GitHub organization.**
-
-### 4.1: Create Repository Secret File
-
-Create a file `argocd-repository-secret.yaml` (DO NOT COMMIT THIS FILE):
-
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: {app-name}-app-of-apps-repo
-  namespace: argocd
-  labels:
-    argocd.argoproj.io/secret-type: repository
-stringData:
-  type: git
-  url: https://github.com/{github-org}/{app-name}-app-of-apps
-  password: <your-github-token>  # Replace with actual token
-  username: essesseff-admin
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: {app-name}-config-dev-repo
-  namespace: argocd
-  labels:
-    argocd.argoproj.io/secret-type: repository
-stringData:
-  type: git
-  url: https://github.com/{github-org}/{app-name}-config-dev
-  password: <your-github-token>  # Replace with actual token
-  username: essesseff-admin
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: {app-name}-config-qa-repo
-  namespace: argocd
-  labels:
-    argocd.argoproj.io/secret-type: repository
-stringData:
-  type: git
-  url: https://github.com/{github-org}/{app-name}-config-qa
-  password: <your-github-token>  # Replace with actual token
-  username: essesseff-admin
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: {app-name}-config-staging-repo
-  namespace: argocd
-  labels:
-    argocd.argoproj.io/secret-type: repository
-stringData:
-  type: git
-  url: https://github.com/{github-org}/{app-name}-config-staging
-  password: <your-github-token>  # Replace with actual token
-  username: essesseff-admin
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: {app-name}-config-prod-repo
-  namespace: argocd
-  labels:
-    argocd.argoproj.io/secret-type: repository
-stringData:
-  type: git
-  url: https://github.com/{github-org}/{app-name}-config-prod
-  password: <your-github-token>  # Replace with actual token
-  username: essesseff-admin
-```
-
-### 4.2: Apply Repository Secrets
+### 4.1: Apply Repository Secrets to argocd-repository-secret.yaml
 
 ```bash
 # Replace <your-github-token> with your actual GitHub Personal Access Token
 # Token needs: repo (Full control) and read:packages (Download packages) scopes
-# Replace {app-name} and {github-org} placeholders in the YAML file
+# Replace hello-world and essesseff-hello-world-go-template placeholders in the YAML file
 
 # Apply secrets
 kubectl apply -f argocd-repository-secret.yaml
 
 # Verify secrets were created
-kubectl get secrets -n argocd | grep {app-name}
+kubectl get secrets -n argocd | grep hello-world
 
 # IMPORTANT: Delete the file after applying to prevent accidental commits
 rm argocd-repository-secret.yaml
 ```
 
-### 4.3: Verify Repository Access
+### 4.2: Verify Repository Access
 
 ```bash
 # Check if Argo CD can access repositories
@@ -204,96 +131,64 @@ argocd repo list
 
 ## Step 5: Create App-of-Apps Root Application
 
-The essesseff template already created the environment Application YAMLs in your `{app-name}-app-of-apps` repository. You just need to create the root Application that manages them.
+The essesseff template already created the environment Application YAMLs in your `hello-world-app-of-apps` repository. You just need to create the root Application that manages them.
 
-**Replace `{app-name}` and `{github-org}` with your actual values.**
-
-### 5.1: Create Root Application
-
-Create `app-of-apps-root.yaml`:
-
-```yaml
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: {app-name}-app-of-apps
-  namespace: argocd
-  labels:
-    app: {app-name}
-    essesseff: "true"
-spec:
-  project: default
-  source:
-    repoURL: https://github.com/{github-org}/{app-name}-app-of-apps
-    targetRevision: main
-    path: argocd  # Path to environment Application YAMLs (created by essesseff template)
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: argocd
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
-```
-
-### 5.2: Apply Root Application
+### 5.1: Apply Root Application
 
 ```bash
-# Replace {app-name} and {github-org} in the YAML file, then:
+# Replace hello-world and essesseff-hello-world-go-template in the YAML file, then:
 kubectl apply -f app-of-apps-root.yaml
 
 # Verify root Application is created
-kubectl get application {app-name}-app-of-apps -n argocd
+kubectl get application hello-world-app-of-apps -n argocd
 
 # Watch for sync status
-kubectl get application {app-name}-app-of-apps -n argocd -w
+kubectl get application hello-world-app-of-apps -n argocd -w
 ```
 
-### 5.3: Verify Environment Applications
+### 5.2: Verify Environment Applications
 
-The root Application will automatically discover and create environment Applications (dev, qa, staging, prod) from the YAMLs in your `{app-name}-app-of-apps/argocd/` directory:
+The root Application will automatically discover and create environment Applications (dev, qa, staging, prod) from the YAMLs in your `hello-world-app-of-apps/argocd/` directory:
 
 ```bash
 # List all Applications
 kubectl get applications -n argocd
 
 # Check specific environment Applications (created automatically)
-kubectl get application {app-name}-dev -n argocd
-kubectl get application {app-name}-qa -n argocd
-kubectl get application {app-name}-staging -n argocd
-kubectl get application {app-name}-prod -n argocd
+kubectl get application hello-world-dev -n argocd
+kubectl get application hello-world-qa -n argocd
+kubectl get application hello-world-staging -n argocd
+kubectl get application hello-world-prod -n argocd
 
 # View Application details
-kubectl describe application {app-name}-dev -n argocd
+kubectl describe application hello-world-dev -n argocd
 ```
 
 ## Step 6: App-of-Apps Architecture Overview
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│ Root Application ({app-name}-app-of-apps)               │
-│ Points to: {app-name}-app-of-apps repo                  │
+│ Root Application (hello-world-app-of-apps)              │
+│ Points to: hello-world-app-of-apps repo                 │
 │ Path: argocd/ (contains environment Application YAMLs)  │
 └──────────────────┬──────────────────────────────────────┘
                    │
-                   ├─── Discovers & Creates ───┐
-                                               │
-        ┌──────────┴──────────┐                │
-        │                     │                │
-┌───────▼────────┐  ┌─────────▼────┐  ┌──────────────┐
-│ Dev Application│  │ QA Application│  │ ... (others) │
-│ Points to:      │  │ Points to:     │  │              │
-│ config-dev repo │  │ config-qa repo │  │              │
-│ Deploys:        │  │ Deploys:       │  │              │
-│ Helm chart      │  │ Helm chart     │  │              │
+                   ├─── Discovers & Creates ────┐
+                   │                            │
+        ┌──────────┴───────────┐                │
+        │                      │                │
+┌───────▼─────────┐  ┌─────────▼───────┐  ┌─────▼────────┐
+│ Dev Application │  │ QA Application  │  │ ... (others) │
+│ Points to:      │  │ Points to:      │  │              │
+│ config-dev repo │  │ config-qa repo  │  │              │
+│ Deploys:        │  │ Deploys:        │  │              │
+│ Helm chart      │  │ Helm chart      │  │              │
 │ from values.yaml│  │ from values.yaml│  │              │
-└─────────────────┘  └────────────────┘  └──────────────┘
+└─────────────────┘  └─────────────────┘  └──────────────┘
 ```
 
 **Flow:**
-1. Root Application syncs from `{app-name}-app-of-apps/argocd/` directory (populated by essesseff template)
+1. Root Application syncs from `hello-world-app-of-apps/argocd/` directory (populated by essesseff template)
 2. Root Application discovers environment Application YAMLs and creates them
 3. Each environment Application syncs from its config repo (Helm chart + values.yaml from essesseff template)
 4. Each environment Application deploys Helm chart with environment-specific values.yaml
@@ -303,7 +198,7 @@ kubectl describe application {app-name}-dev -n argocd
 
 The essesseff template already configured your `values.yaml` files with AWS ALB ingress settings. Verify the configuration in each config repository:
 
-**In `{app-name}-config-{env}/values.yaml`:**
+**In `hello-world-config-{env}/values.yaml`:**
 
 ```yaml
 ingress:
@@ -313,12 +208,12 @@ ingress:
     alb.ingress.kubernetes.io/scheme: internal  # Or 'internet-facing'
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
-    alb.ingress.kubernetes.io/group.name: {app-name}
+    alb.ingress.kubernetes.io/group.name: hello-world
     alb.ingress.kubernetes.io/group.order: '1'  # Increment per env (1=dev, 2=qa, 3=staging, 4=prod)
   hosts:
     - host: example.com  # Update with your domain
       paths:
-        - path: /{app-name}-{env}  # Path-based routing
+        - path: /hello-world-{env}  # Path-based routing
           pathType: Prefix
 ```
 
@@ -336,11 +231,11 @@ After Argo CD deploys your apps (wait for Applications to sync and deployments t
 kubectl get applications -n argocd
 
 # Check if deployments are ready
-kubectl get deployments -n {app-name}-dev
-kubectl get deployments -n {app-name}-qa
+kubectl get deployments -n hello-world-dev
+kubectl get deployments -n hello-world-qa
 
 # Forward dev environment
-kubectl port-forward service/{app-name}-dev 8080:80 -n {app-name}-dev
+kubectl port-forward service/hello-world-dev 8080:80 -n hello-world-dev
 
 # Forward Argo CD UI
 kubectl port-forward svc/argocd-server -n argocd 8080:443
@@ -357,12 +252,12 @@ kubectl port-forward svc/argocd-server -n argocd 8080:443
 ```bash
 #!/bin/bash
 # port-forward.sh - Port forward all environments
-# Replace {app-name} with your actual app name
+# Replace hello-world with your actual app name (essesseff already does this)
 
-kubectl port-forward service/{app-name}-dev 8080:80 -n {app-name}-dev &
-kubectl port-forward service/{app-name}-qa 8081:80 -n {app-name}-qa &
-kubectl port-forward service/{app-name}-staging 8082:80 -n {app-name}-staging &
-kubectl port-forward service/{app-name}-prod 8083:80 -n {app-name}-prod &
+kubectl port-forward service/hello-world-dev 8080:80 -n hello-world-dev &
+kubectl port-forward service/hello-world-qa 8081:80 -n hello-world-qa &
+kubectl port-forward service/hello-world-staging 8082:80 -n hello-world-staging &
+kubectl port-forward service/hello-world-prod 8083:80 -n hello-world-prod &
 
 echo "Port forwarding active:"
 echo "  - Dev:      http://localhost:8080"
@@ -385,32 +280,32 @@ kubectl get pods -n argocd
 
 # Check Applications status
 kubectl get applications -n argocd
-kubectl get application {app-name}-app-of-apps -n argocd -o yaml
+kubectl get application hello-world-app-of-apps -n argocd -o yaml
 
 # Check environment Applications
-kubectl get applications -n argocd -l app={app-name}
+kubectl get applications -n argocd -l app=hello-world
 
 # Check deployments in each environment
-kubectl get deployments -n {app-name}-dev
-kubectl get deployments -n {app-name}-qa
-kubectl get deployments -n {app-name}-staging
-kubectl get deployments -n {app-name}-prod
+kubectl get deployments -n hello-world-dev
+kubectl get deployments -n hello-world-qa
+kubectl get deployments -n hello-world-staging
+kubectl get deployments -n hello-world-prod
 
 # Check pods
-kubectl get pods -n {app-name}-dev
-kubectl get pods -n {app-name}-qa
+kubectl get pods -n hello-world-dev
+kubectl get pods -n hello-world-qa
 
 # Check services
-kubectl get services -n {app-name}-dev
-kubectl get ingress -n {app-name}-dev
+kubectl get services -n hello-world-dev
+kubectl get ingress -n hello-world-dev
 
 # Test port forward
-kubectl port-forward service/{app-name}-dev 8080:80 -n {app-name}-dev
+kubectl port-forward service/hello-world-dev 8080:80 -n hello-world-dev
 # In another terminal: curl http://localhost:8080/health
 
 # Check Argo CD sync status via CLI (if installed)
 argocd app list
-argocd app get {app-name}-dev
+argocd app get hello-world-dev
 ```
 
 ## Troubleshooting
@@ -419,29 +314,29 @@ argocd app get {app-name}-dev
 
 ```bash
 # Check Application sync status
-kubectl get application {app-name}-dev -n argocd -o yaml
+kubectl get application hello-world-dev -n argocd -o yaml
 
 # Check for sync errors
-kubectl describe application {app-name}-dev -n argocd
+kubectl describe application hello-world-dev -n argocd
 
 # Check if repository secrets are correct
-kubectl get secrets -n argocd | grep {app-name}
+kubectl get secrets -n argocd | grep hello-world
 
 # Manually trigger sync (if needed)
-kubectl patch application {app-name}-dev -n argocd --type merge -p '{"operation":{"sync":{"syncStrategy":{"hook":{}}}}}'
+kubectl patch application hello-world-dev -n argocd --type merge -p '{"operation":{"sync":{"syncStrategy":{"hook":{}}}}}'
 ```
 
 ### Repository Access Issues
 
 ```bash
 # Verify repository secrets exist
-kubectl get secrets -n argocd | grep {app-name}
+kubectl get secrets -n argocd | grep hello-world
 
 # Check repository connection
 argocd repo list
 
 # Test repository access
-argocd repo get https://github.com/{github-org}/{app-name}-config-dev
+argocd repo get https://github.com/essesseff-hello-world-go-template/hello-world-config-dev
 
 # Verify GitHub token has correct scopes (repo, read:packages)
 ```
@@ -453,7 +348,7 @@ argocd repo get https://github.com/{github-org}/{app-name}-config-dev
 kubectl logs -n kube-system deployment/aws-load-balancer-controller
 
 # Check ingress resource
-kubectl get ingress -n {app-name}-dev -o yaml
+kubectl get ingress -n hello-world-dev -o yaml
 
 # Verify AWS Load Balancer Controller is running
 kubectl get pods -n kube-system | grep aws-load-balancer-controller
@@ -466,13 +361,13 @@ kubectl logs -n kube-system deployment/aws-load-balancer-controller | grep -i er
 
 ```bash
 # Check what Helm is trying to deploy
-kubectl get application {app-name}-dev -n argocd -o yaml | grep -A 20 "helm:"
+kubectl get application hello-world-dev -n argocd -o yaml | grep -A 20 "helm:"
 
 # Verify values.yaml syntax
-helm template {app-name}-dev ./path/to/chart -f ./path/to/values.yaml --debug
+helm template hello-world-dev ./path/to/chart -f ./path/to/values.yaml --debug
 
 # Check for missing values
-kubectl describe application {app-name}-dev -n argocd | grep -i error
+kubectl describe application hello-world-dev -n argocd | grep -i error
 ```
 
 ## Step 11: Deployment Process
@@ -483,10 +378,10 @@ Once your infrastructure is set up, deployments are managed through essesseff wi
 
 DEV environment automatically deploys on code pushes:
 
-1. **Push code** to `main` branch in `{app-name}` repository
+1. **Push code** to `main` branch in `hello-world` repository
 2. **GitHub Actions** builds container image and pushes to GitHub Container Registry (GHCR)
 3. **essesseff webhook** receives build completion event
-4. **essesseff automatically** updates `{app-name}-config-dev/values.yaml` with new image tag
+4. **essesseff automatically** updates `hello-world-config-dev/Chart.yaml` and `hello-world-config-dev/values.yaml` with new image tag
 5. **Argo CD syncs** DEV Application (auto-sync enabled)
 6. **Deployment completes** - new version running in DEV
 
@@ -500,15 +395,15 @@ QA, STAGING, and PROD require manual approval through essesseff UI:
 
 1. **Developer** declares Release Candidate (RC) in essesseff UI
 2. **QA Engineer** reviews and accepts RC in essesseff UI
-3. **essesseff** updates `{app-name}-config-qa/values.yaml` with RC image tag
+3. **essesseff** updates `hello-world-config-qa/Chart.yaml` and `hello-world-config-qa/values.yaml` with RC image tag
 4. **Argo CD syncs** QA Application (auto-sync enabled)
 5. **QA Engineer** tests the deployment
-6. **QA Engineer** marks image as Stable when ready
+6. **QA Engineer** marks image as Stable when ready (or may also reject the RC)
 
 #### STAGING Deployment Process
 
 1. **Release Engineer** selects Stable image in essesseff UI
-2. **essesseff** updates `{app-name}-config-staging/values.yaml` with Stable image tag
+2. **essesseff** updates `hello-world-config-staging/Chart.yaml` and `hello-world-config-staging/values.yaml` with Stable image tag
 3. **Argo CD syncs** STAGING Application (auto-sync enabled)
 4. **Release Engineer** validates staging deployment
 
@@ -516,7 +411,7 @@ QA, STAGING, and PROD require manual approval through essesseff UI:
 
 1. **Release Engineer** selects Stable image for PROD in essesseff UI
 2. **OTP verification required** - essesseff prompts for one-time password
-3. **After OTP approval**, essesseff updates `{app-name}-config-prod/values.yaml` with Stable image tag
+3. **After OTP approval**, essesseff updates `hello-world-config-staging/Chart.yaml` and `hello-world-config-prod/values.yaml` with Stable image tag
 4. **Argo CD syncs** PROD Application (auto-sync enabled)
 5. **Deployment completes** - new version running in PROD
 
@@ -524,7 +419,7 @@ QA, STAGING, and PROD require manual approval through essesseff UI:
 
 essesseff enforces role-based access control:
 
-- **Developers**: Can declare Release Candidates, cannot deploy
+- **Developers**: Can declare Release Candidates, as well as optionally deploy/re-deploy to DEV
 - **QA Engineers**: Can accept RCs and deploy to QA, can mark images as Stable
 - **Release Engineers**: Can deploy to STAGING and PROD (PROD requires OTP)
 - **DevOps Engineers**: Full access to all environments
@@ -533,12 +428,12 @@ essesseff enforces role-based access control:
 
 Your essesseff app repositories:
 
-- **Source**: `https://github.com/{github-org}/{app-name}`
-- **Config DEV**: `https://github.com/{github-org}/{app-name}-config-dev`
-- **Config QA**: `https://github.com/{github-org}/{app-name}-config-qa`
-- **Config STAGING**: `https://github.com/{github-org}/{app-name}-config-staging`
-- **Config PROD**: `https://github.com/{github-org}/{app-name}-config-prod`
-- **App-of-Apps**: `https://github.com/{github-org}/{app-name}-app-of-apps` (this repo)
+- **Source**: `https://github.com/essesseff-hello-world-go-template/hello-world`
+- **Config DEV**: `https://github.com/essesseff-hello-world-go-template/hello-world-config-dev`
+- **Config QA**: `https://github.com/essesseff-hello-world-go-template/hello-world-config-qa`
+- **Config STAGING**: `https://github.com/essesseff-hello-world-go-template/hello-world-config-staging`
+- **Config PROD**: `https://github.com/essesseff-hello-world-go-template/hello-world-config-prod`
+- **App-of-Apps**: `https://github.com/essesseff-hello-world-go-template/hello-world-app-of-apps` (this repo)
 
 ## Step 12: essesseff Integration
 
@@ -547,16 +442,16 @@ This setup requires the essesseff platform for deployment orchestration:
 ### essesseff Features
 
 - **Event-driven promotions**: Automatic DEV deployments on code push
-- **RBAC enforcement**: Role-based access control for deployments
+- **RBAC enforcement**: Role-based access control for deployments and promotions
 - **Approval workflows**: Manual approvals for QA/STAGING/PROD
-- **Deployment policies**: Enforced promotion paths (RC → QA → Stable → STAGING → PROD)
-- **Audit trail**: Complete history of all deployments and approvals
+- **Deployment policies**: Enforced promotion paths (BUILD → DEV → RC → QA → Stable → STAGING → PROD)
+- **Audit trail**: Complete history of all builds, deployments, promotions and approvals
 - **OTP protection**: One-time password required for PROD deployments
 
 ### How essesseff Works with Argo CD
 
 1. **essesseff manages** image lifecycle and promotion decisions
-2. **essesseff updates** `values.yaml` files in config repos with approved image tags
+2. **essesseff updates** `Chart.yaml` and `values.yaml` files in config repos with approved image tags
 3. **Argo CD detects** changes via Git polling
 4. **Argo CD syncs** Applications automatically (auto-sync enabled)
 5. **Kubernetes resources** are updated with new image versions
@@ -564,9 +459,9 @@ This setup requires the essesseff platform for deployment orchestration:
 ### essesseff UI Workflow
 
 - **Image Lifecycle**: View and manage container images through lifecycle states (BUILD → DEV → RC → QA_TESTING → STABLE → STAGING → PROD)
-- **Deployment Actions**: Declare RCs, accept RCs, deploy to environments
-- **Approval Gates**: OTP verification for PROD, role-based permissions
-- **History & Audit**: Complete deployment history with user actions
+- **Deployment & Promotion Actions**: Declare RCs, accept RCs, declare RCs stable, deploy to environments
+- **Approval Gates**: accept RCs, declare RCs stable or reject, OTP verification for PROD, role-based permissions
+- **History & Audit**: Complete build, deployment and promotion history with user actions
 
 ## Summary
 
@@ -575,16 +470,16 @@ Your essesseff app is now deployed with:
 1. ✅ EKS cluster with proper endpoint configuration
 2. ✅ AWS Load Balancer Controller installed
 3. ✅ Argo CD installed and configured
-4. ✅ Repository secrets for all 6 GitHub repos (created by essesseff)
+4. ✅ Repository secrets for all 6 GitHub repos created by essesseff
 5. ✅ App-of-apps root Application created
 6. ✅ Environment Applications automatically managed (from essesseff template)
-7. ✅ Helm charts deploying with environment-specific values.yaml (from essesseff template)
+7. ✅ Helm charts deploying with environment-specific Chart.yaml and values.yaml (from essesseff template)
 8. ✅ Path-based routing configured for internal ALB (from essesseff template)
 9. ✅ essesseff integration ready for automated and manual deployments
 
 The app-of-apps pattern ensures that:
 - All environment Applications are managed from a single root Application
-- Changes to environment Application definitions are version-controlled in `{app-name}-app-of-apps` repo
+- Changes to environment Application definitions are version-controlled in `hello-world-app-of-apps` repo
 - New environments can be added by adding Application YAMLs to the app-of-apps repo
 - All deployments follow GitOps principles with automated sync
 - Configuration changes are made via Git commits to config repos, not manual kubectl commands
