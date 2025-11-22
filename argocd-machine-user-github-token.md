@@ -350,6 +350,6 @@ docker pull ghcr.io/org/app:latest
 
 ---
 
-**Document Version**: 1.0  
-**Last Updated**: November 21, 2024  
-**Maintained By**: DevOps Team
+**Document Version**: 1.1  
+**Last Updated**: November 22, 2025  
+**Maintained By**: essesseff Team
