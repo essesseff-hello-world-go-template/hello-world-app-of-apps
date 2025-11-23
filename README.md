@@ -37,7 +37,7 @@ kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/st
 2. **Configure repository access**:
 ```bash
 # Edit argocd/argocd-repository-secret.yaml with your GitHub token
-kubectl apply -f argocd/argocd-repository-secret.yaml
+kubectl apply -f argocd-repository-secret.yaml
 ```
 
 3. **Deploy app-of-apps root Application**:
