@@ -41,12 +41,14 @@ kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/st
 2. **Configure Argo CD access to essesseff app config repositories**:
 ```bash
 # Edit argocd-repository-secret.yaml with your GitHub Argo CD machine username(s) and token(s)
+# ***BE SURE TO DELETE THE FILE AFTERWARDS SO AS NOT TO COMMIT THE FILE CONTENTS TO GITHUB***
 kubectl apply -f argocd-repository-secret.yaml
 ```
 
 3. **Configure Argo CD access to essesseff app image registry i.e. GHCR**:
 ```bash
 # Edit ghcr-credentials-secret.yaml with your GitHub Argo CD machine username and token, email address and base64 of username:token
+# ***BE SURE TO DELETE THE FILE AFTERWARDS SO AS NOT TO COMMIT THE FILE CONTENTS TO GITHUB***
 kubectl apply -f ghcr-credentials-secret.yaml
 ```
 
