@@ -65,6 +65,12 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 # Access: https://localhost:8080
 ```
 
+6. **Access DEV essesseff app deployment**:
+```bash
+kubectl port-forward service/hello-world-dev 8081:80 -n essesseff-hello-world-go-template
+# Access: http://localhost:8081
+```
+
 ## Applications
 
 The root Application (`app-of-apps.yaml`) automatically creates these environment Applications:
