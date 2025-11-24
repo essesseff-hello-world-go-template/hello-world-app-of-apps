@@ -25,9 +25,10 @@ hello-world-app-of-apps/
 ## Quick Start
 
 For more detailed setup instructions, also see: 
-[GitHub Argo CD Machine User and PAT Guide](./argocd-machine-user-github-token.md) 
-[EKS Setup Guide](./aws-setup-instructions.md)
-[Argo CD External Exposure Guide](./exposing-argocd-externally.md)
+- [GitHub Argo CD Machine User and PAT Guide](./argocd-machine-user-github-token.md)
+- [EKS Setup Guide](./aws-setup-instructions.md)
+- [Argo CD External Exposure Guide](./exposing-argocd-externally.md)
+- [essesseff Documentation](https://essesseff.com/docs) - essesseff platform documentation
 
 ### Minimal Setup (After EKS Infrastructure is Ready)
 
