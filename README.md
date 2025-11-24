@@ -24,7 +24,10 @@ hello-world-app-of-apps/
 
 ## Quick Start
 
-For complete setup instructions, see the [EKS Setup Guide](./aws-setup-instructions.md).
+For more detailed setup instructions, also see: 
+[GitHub Argo CD Machine User and PAT Guide](./argocd-machine-user-github-token.md) 
+[EKS Setup Guide](./aws-setup-instructions.md)
+[Argo CD External Exposure Guide](./exposing-argocd-externally.md)
 
 ### Minimal Setup (After EKS Infrastructure is Ready)
 
@@ -34,21 +37,27 @@ kubectl create namespace argocd
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 ```
 
-2. **Configure repository access**:
+2. **Configure Argo CD access to essesseff app config repositories**:
 ```bash
-# Edit argocd/argocd-repository-secret.yaml with your GitHub token
+# Edit argocd-repository-secret.yaml with your GitHub Argo CD machine username(s) and token(s)
 kubectl apply -f argocd-repository-secret.yaml
 ```
 
-3. **Deploy app-of-apps root Application**:
+3. **Configure Argo CD access to essesseff app image registry i.e. GHCR**:
+```bash
+# Edit ghcr-credentials-secret.yaml with your GitHub Argo CD machine username and token, email address and base64 of username:token
+kubectl apply -f ghcr-credentials-secret.yaml
+```
+
+4. **Deploy app-of-apps root Application**:
 ```bash
 kubectl apply -f app-of-apps.yaml
 ```
 
-4. **Access Argo CD UI**:
+5. **Access Argo CD UI**:
 ```bash
 kubectl port-forward svc/argocd-server -n argocd 8080:443
-# Get admin password:
+# Get admin password (and be sure to securely save it):
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d && echo
 # Access: https://localhost:8080
 ```
@@ -116,6 +125,8 @@ This setup requires the essesseff platform for deployment orchestration:
 
 ## See Also
 
-- [Complete EKS Setup Instructions](./aws-setup-instructions.md) - Full infrastructure setup guide
+- [GitHub Argo CD Machine User and PAT Guide](./argocd-machine-user-github-token.md)
+- [EKS Setup Guide](./aws-setup-instructions.md)
+- [Argo CD External Exposure Guide](./exposing-argocd-externally.md)
 - [essesseff Documentation](https://essesseff.com/docs) - essesseff platform documentation
 
