@@ -2,9 +2,9 @@
 
 ## ⚠️ SECURITY WARNING
 
-**NEVER commit `argocd-repository-secret.yaml` with actual GitHub tokens!**
+**NEVER commit `argocd-repository-secret.yaml` or `ghcr-credentials-secret.yaml` with actual GitHub tokens!**
 
-The file `argocd-repository-secret.yaml` contains placeholder tokens (`<your-github-token>`) and should be:
+The files `argocd-repository-secret.yaml` and `ghcr-credentials-secret.yaml` contain placeholder tokens (`<your-github-token>`) and should be:
 
 1. **Created locally** with actual tokens before applying
 2. **Excluded from Git** (see `.gitignore` below)
@@ -12,11 +12,12 @@ The file `argocd-repository-secret.yaml` contains placeholder tokens (`<your-git
 
 ## Setup Instructions
 
-1. Copy `argocd-repository-secret.yaml` to a secure location
+1. Copy `argocd-repository-secret.yaml` and `ghcr-credentials-secret.yaml` to a secure location
 2. Replace all instances of `<your-github-token>` with your actual GitHub personal access token
 3. Apply the secrets:
    ```bash
    kubectl apply -f argocd-repository-secret.yaml
+   kubectl apply -f ghcr-credentials-secret.yaml
    ```
 4. Verify secrets were created:
    ```bash
@@ -37,4 +38,6 @@ Add this to your `.gitignore`:
 # Argo CD secrets with tokens (DO NOT COMMIT)
 argocd-repository-secret.yaml
 *argocd-repository-secret*.yaml
+ghcr-credentials-secret.yaml
+*ghcr-credentials-secret.yaml*.yaml
 ```
